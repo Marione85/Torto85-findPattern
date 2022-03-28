@@ -5,17 +5,18 @@ import itertools
 class Board():
 
     def __init__(self, n):
-        "Set up initial board configuration."
+        "Configurazione iniziale della board"
 
         self.n = n
 
+        # si tiene traccia del guess di uno dei due player
         # 0 scelta non presa
         # 1 se sceglie pattern
         # -1 se sceglie non pattern
         self.guess1 = 0
         self.guess2 = 0
 
-        # si creano le due maschere
+        # si creano le due maschere per suddividere la board
         # 1 visibile, 0 non visibile
         self.mask2 = np.zeros(self.n*self.n, dtype=int)
         self.mask2[:(self.n*self.n)//2] = 1
@@ -24,22 +25,23 @@ class Board():
 
         self.mask1 = np.where(self.mask2==1, 0, 1)
         
-        # si creano le board per gestire le informazioni
+        # parte relativa alla gestione delle informazioni
         # in posizione (i,j,0) abbiamo il numero di bianchi ottenuti come risposte interrogando la casella (i,j)
         # in posizione (i,j,1) abbiamo il numero di neri ottenuti come risposte interrogando la casella (i,j)
         self.info1 = np.zeros((self.n,self.n,2), dtype=int)
         self.info2 = np.zeros((self.n,self.n,2), dtype=int)
 
-        # numero neri
+        # il numero di caselle nere è legato alla dimensione della board
         self.n_black = int(np.ceil(self.n*self.n*0.22))
 
-        # Create the empty board array
+        # Creazione della board iniziale
         # 0 white, 1 black
         self.pieces = np.zeros(self.n*self.n, dtype=int)
         self.pieces[:self.n_black] = 1
         np.random.shuffle(self.pieces)
         self.pieces = np.reshape(self.pieces, (self.n,self.n))
         
+        # Si tiene traccia anche della presenza, o meno, del pattern
         # 0 non pattern, 1 pattern
         self.case = self.existPattern()
 
@@ -47,8 +49,17 @@ class Board():
     def __getitem__(self, index): 
         return self.pieces[index]
 
+    def existPattern(self):
+        "Gestisce i due possibili casi di pattern analizzati"
+        
+        if(self.n < 6):
+            return self.checkPattern2()
+        else:
+            return self.checkPattern4()
+    
     def checkPattern2(self):
         # pattern di almeno due celle adiacenti
+        
         for i in range(self.n):
             for j in range(self.n):
                 if j < self.n - 1:
@@ -61,6 +72,7 @@ class Board():
 
     def checkPattern4(self):
         # pattern con forma di tetramino a S o Z
+        
         for i in range(self.n):
             for j in range(self.n):
                 if j<self.n-2 and i<self.n-1:
@@ -77,18 +89,12 @@ class Board():
                             return 1       
         return 0
 
-    def existPattern(self):
-        if(self.n < 6):
-            return self.checkPattern2()
-        else:
-            return self.checkPattern4()
-
     def countDiff(self, player):
-        """Counts the # black pieces of the given player
-        (1 for player1, -1 for player2)"""
+        """Conta il numero di celle nere che il player vede
+        (1 per player1, -1 per player2)"""
 
         # le maschere servono per non tenere in considerazione le celle
-        # ancora invisibili al player
+        # ancora invisibili al rispettivo player
         mx1 = ma.masked_array(self.pieces, mask=self.mask1)
         mx2 = ma.masked_array(self.pieces, mask=self.mask2)
 
@@ -98,10 +104,11 @@ class Board():
             return mx2.sum() - mx1.sum()
 
     def get_legal_moves(self, player):
-        """Returns all the legal moves for the given color.
-        (1 for white, -1 for black
+        """Ritorna tutte le mosse legali per il player
+        (0 per white, 1 per black)
         """
-        # Get all the coppie di mosse of the given player.
+        
+        # Prende tutte le coppie di mosse per il player.
         if player == 1:
             # il primo elemento della coppia risultante è quello da scoprire
             # il secondo elemento della coppia risultante è quello da interrogare
@@ -112,9 +119,10 @@ class Board():
             return list(itertools.product(np.argwhere(self.mask1 == 1).tolist(),np.argwhere(self.mask2 == 1).tolist())) + ["guess_pattern", "guess_nonpattern"]
 
     def execute_move(self, move, player):
-        """Perform the given move on the board; flips pieces as necessary.
-        color gives the color pf the piece to play (1=white,-1=black)
+        """Esegue le due mosse sulla "board"; in realtà modifica esclusivamente
+        le maschere e le informazioni, a seconda del player. (0=white,1=black)
         """
+        
         if player == 1:
 
             # move può contenere il guess oppure nell'ordine: gli indici
