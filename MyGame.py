@@ -4,87 +4,74 @@ import numpy.ma as ma
 import math
 
 class Game():
-    """
-    This class specifies the base Game class. To define your own game, subclass
-    this class and implement the functions below. This works when the game is
-    two-player, adversarial and turn-based.
+    """ Questa classe specifica il Game. Questo Game è pensato per
+    essere: two-player, adversarial and turn-based.
+    Usa 1 per il player1 e -1 per il player2."""
 
-    Use 1 for player1 and -1 for player2.
-
-    See othello/OthelloGame.py for an example implementation.
-    """
     def __init__(self, n):
         self.n = n
 
     def getInitBoard(self):
-        """
-        Returns:
-            startBoard: a representation of the board (ideally this is the form
-                        that will be the input to your neural network)
-        """
-        # return initial board (numpy board)
-        b = Board(self.n)
-        return b.pieces
+        "Ritorna startBoard: una rappresentazione della board"
+        # ritorna la board iniziale, di tutti gli elementi inizializzati
+        # serve tenersi inizialmnte solo la board (di tipo numpy.array)
+        
+        self.b = Board(self.n)
+        return self.b.pieces
 
     def getBoardSize(self):
-        """
-        Returns:
-            (x,y): a tuple of board dimensions
-        """
-        # (a,b) tuple
+        "Ritorna (x,y): tupla che indica la dimensione della board"
+        
         return (self.n, self.n)
 
     def getActionSize(self):
-        """
-        Returns:
-            actionSize: number of all possible actions
-        """
-        # return number of actions
+        "Ritorna actionSize: numero di tutte le possibili azioni"
         # coppia (interrogazione, scoperta) più guess pattern si/no
+        # per l'interrogazione abbiamo n^2, lo stesso vale per la
+        # scoperta, quindi tutte le possibili coppie sono n^4
+
         return pow(self.n,4) + 2
 
     def getNextState(self, board, player, action):
         """
-        Input:
-            board: current board
-            player: current player (1 or -1)
-            move: action taken by current player
+        Input: board corrente, il player corrente (1 o -1) e la move,
+        l'azione compiuta dal player corrente
 
-        Returns:
-            nextBoard: board after applying action
-            nextPlayer: player who plays in the next turn (should be -player)
+        Ritorna la board ed il nextPlayer, il player che gioca nel
+        turno successivo (basta fare -player)
         """
-        # player takes action on mask of other player and his own info
+        # player esegue l'azione sulla mask dell'avversario e sulle proprie info
+        # è però necessario, data la action, ricavare gli indici da passare come
+        # mossa, sempre nella forma (interrogazione, scoperta)
         # action must be a valid move and return (board, next player)
-
+        
         if action < self.n**4:
-            move = ([action//self.n**3, (action%self.n**3)//self.n**2], [(action%self.n**2)//self.n, action%self.n])
+            move = ([action//self.n**3, (action%self.n**3)//self.n**2],
+                [(action%self.n**2)//self.n, action%self.n])
         elif action == self.n**4:
             move = "guess_pattern"
         else:
             move = "guess_nonpattern"
 
-        board.execute_move(move, player)
+        self.b.execute_move(move, player)
         
         return (board, -player)
 
     def getValidMoves(self, board, player):
         """
-        Input:
-            board: current board
-            player: current player
+        Input: board e player (1 o -1) correnti
 
-        Returns:
-            validMoves: a binary vector of length self.getActionSize(), 1 for
-                        moves that are valid from the current board and player,
-                        0 for invalid moves
+        Ritorna validMoves: un vettore binario di lunghezza self.getActionSize(),
+        con 1 nel caso la mossa è valida, 0 altrimenti
         """
-        # return a fixed size binary vector
         # invoca get_legal_moves e ritorna tutti i possibili casi ottenuti
+
         valids = [0]*self.getActionSize()
 
-        legalMoves =  board.get_legal_moves(player)
+        legalMoves =  self.b.get_legal_moves(player)
 
+        # legalMoves contiene tutte le mosse valide, si deve in seguito
+        #trovare la posizione che deve occupare nel vettore binario valids
         for (i,j),(h,k) in legalMoves[:-2]:
             app = i*pow(self.n,3) + j*pow(self.n,2) + h*self.n + k
             valids[app] = 1
@@ -95,18 +82,11 @@ class Game():
 
     def getGameEnded(self, board, player):
         """
-        Input:
-            board: current board
-            player: current player (1 or -1)
+        Input: board e player (1 o -1) correnti
 
-        Returns:
-            r: 0 if game has not ended. 1 if player won, -1 if player lost,
-               small non-zero value for draw.
-               
+        Ritorna r: 0 se game non è finito. 1 se il player vince,
+        -1 se player perde,       
         """
-        # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost
-        # player = 1
-
         # verificare se la casella self.guess1 è diversa da 0
         # se self.guess1 == 1 and self.case == 1
             # player1 vince -> return 1
@@ -115,84 +95,83 @@ class Game():
             # player1 vince -> return 1
             # altrimenti player2 vince -> return -1
         # non è stato fatto guess -> return 0
-        if board.guess1 == board.case:
+        
+        if self.b.guess1 == self.b.case:
             # vinto
             return 1
-        elif board.guess1 == -board.case:
+        elif self.b.guess1 == -self.b.case:
             # perso
             return -1
-        if board.guess2 == board.case:
+        
+        # lo stesso vale per il player2
+        if self.b.guess2 == self.b.case:
             # vinto
             return -1
-        elif board.guess2 == -board.case:
+        elif self.b.guess2 == -self.b.case:
             # perso
             return 1
         return 0
 
     def getCanonicalForm(self, board, player):
         """
-        Input:
-            board: current board
-            player: current player (1 or -1)
+        Input: board e player (1 o -1) correnti
 
-        Returns:
-            canonicalBoard: returns canonical form of board. The canonical form
-                            should be independent of player. For e.g. in chess,
-                            the canonical form can be chosen to be from the pov
-                            of white. When the player is white, we can return
-                            board as is. When the player is black, we can invert
-                            the colors and return the board.
+        Ritorna la canonicalBoard: La canonical form deve essere indipendente
+        dal player ed equivale alla board su cui viene applicata la mask e le
+        info ottenute fino a quel punto.
         """
-        # returns the board on which the mask and the info are applied
         
         if player == 1:
             # a self.pieces viene applicata la self.mask1 per limitare al player
             # la visione delle tessere a lui concesse, poi si applica self.info1
             # così da poter inserire anche le risposte ottenute fino ad ora
 
+            # si ricorda inoltre che il formato delle info è:
             # board.info1[i][j][0] = bianco
             # board.info1[i][j][1] = nero
-            mx = ma.masked_array(board, mask=board.mask1)
+            mx = ma.masked_array(board, mask=self.b.mask1, dtype=float)
             for i in range(self.n):
                 for j in range(self.n):
                     if mx.mask[i][j] == True:
-                        # la funzione di stima è della forma x/1+|x|
-                        mx[i][j] = self.stimaValore(board.info1[i][j][0],board.info1[i][j][1])
+                        # si delega il computo della stima legato alle informazioni
+                        # ottenute alla funzione stimaValore
+                        mx[i][j] = np.round(self.stimaValore(board.info1[i][j][0],
+                                    board.info1[i][j][1]), 3)
         else:
-            # si effettua la stessa cosa per il player2
-            mx = ma.masked_array(board, mask=board.mask2)
+            # si effettua la stessa operazione per il player2
+            mx = ma.masked_array(board, mask=self.b.mask2, dtype=float)
             for i in range(self.n):
                 for j in range(self.n):
                     if mx.mask[i][j] == True:
-                        # la funzione di stima è della forma x/1+|x|
-                        mx[i][j] = self.stimaValore(board.info2[i][j][0],board.info2[i][j][1])
+                        mx[i][j] = np.round(self.stimaValore(board.info2[i][j][0],
+                                    board.info2[i][j][1]), 3)
         return mx.data
     
     def stimaValore(self, bianco, nero):
-        somma = bianco + nero
+        # la funzione che stima il peso delle informazioni ottenute è
+        # della forma 1-e^-((col1-col2)/1+|col1-col2|)
+        # al valore così ottenutosi aggiunge 0.5 che corrisponde all'incertezza
         if nero == bianco:
-          return 0.5
+            # se il loro valore è uguale allora si ha completa incertezza
+            return 0.5
         elif nero > bianco:
-          return 0.5 + (1-math.exp(-((nero-bianco)/(1+(np.abs(nero-bianco))))))/2
+            return 0.5 + (1-math.exp(-((nero-bianco)/(1+(np.abs(nero-bianco))))))/2
         else:
-          return 1 - (0.5 + (1-math.exp(-((bianco-nero)/(1+(np.abs(bianco-nero))))))/2)
-#---- riscrivere funzione nel commento
+            # 1 - funzione perchè si deve ottenere l'inverso
+            return 1 - (0.5 + (1-math.exp(-((bianco-nero)/(1+(np.abs(bianco-nero))))))/2)
 
 
-    # SERVE?
     def getSymmetries(self, board, pi):
         """
-        Input:
-            board: current board
-            pi: policy vector of size self.getActionSize()
+        Input: board corrente e il vettore delle policy lungo self.getActionSize()
 
-        Returns:
-            symmForms: a list of [(board,pi)] where each tuple is a symmetrical
-                       form of the board and the corresponding pi vector. This
-                       is used when training the neural network from examples.
+        Ritorna symmForms: una lista di [(board,pi)] dove ogni tupla è una forma simmetrica
+        della board e del vettore pi corrispondente. Si usa quando si addestra la
+        neural network attraverso gli esempi.
         """
         # mirror, rotational
-        assert(len(pi) == self.n**4+2)  # 2 for guess
+        
+        assert(len(pi) == self.n**4+2)  # 2 per il guess
         pi_board = np.reshape(pi[:-2], (self.n, self.n))
         l = []
 
@@ -208,12 +187,11 @@ class Game():
 
     def stringRepresentation(self, board, player):
         """
-        Input:
-            board: current board
+        Input: board corrente
 
-        Returns:
-            boardString: a quick conversion of board to a string format.
-                         Required by MCTS for hashing.
+        Ritorna boardString: una conversione rapida della board in formato stringA.
+        Richiesto dalla MCTS per l'hashing.
         """
         # take the canonical board, on which the mask and the info are applied
+        
         return board.tostring()
