@@ -189,9 +189,8 @@ class Game():
         """
         Input: board corrente
 
-        Ritorna boardString: una conversione rapida della board in formato stringA.
+        Ritorna boardString: una conversione rapida della board in formato stringa.
         Richiesto dalla MCTS per l'hashing.
         """
-        # take the canonical board, on which the mask and the info are applied
         
         return board.tostring()
