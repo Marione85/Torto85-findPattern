@@ -135,16 +135,16 @@ class Game():
                     if mx.mask[i][j] == True:
                         # si delega il computo della stima legato alle informazioni
                         # ottenute alla funzione stimaValore
-                        mx[i][j] = np.round(self.stimaValore(board.info1[i][j][0],
-                                    board.info1[i][j][1]), 3)
+                        mx[i][j] = np.round(self.stimaValore(self.b.info1[i][j][0],
+                                    self.b.info1[i][j][1]), 3)
         else:
             # si effettua la stessa operazione per il player2
             mx = ma.masked_array(board, mask=self.b.mask2, dtype=float)
             for i in range(self.n):
                 for j in range(self.n):
                     if mx.mask[i][j] == True:
-                        mx[i][j] = np.round(self.stimaValore(board.info2[i][j][0],
-                                    board.info2[i][j][1]), 3)
+                        mx[i][j] = np.round(self.stimaValore(self.b.info2[i][j][0],
+                                    self.b.info2[i][j][1]), 3)
         return mx.data
     
     def stimaValore(self, bianco, nero):
