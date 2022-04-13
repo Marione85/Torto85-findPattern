@@ -3,8 +3,8 @@ import logging
 import coloredlogs
 
 from Coach import Coach
-from othello.OthelloGame import OthelloGame as Game
-from othello.pytorch.NNet import NNetWrapper as nn
+from MyGame import MyGame as Game
+from MyNN import NNetWrapper as nn
 from utils import *
 
 log = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ args = dotdict({
     'tempThreshold': 15,        #
     'updateThreshold': 0.6,     # During arena playoff, new neural net will be accepted if threshold or more of games are won.
     'maxlenOfQueue': 200000,    # Number of game examples to train the neural networks.
-    'numMCTSSims': 25,          # Number of games moves for MCTS to simulate.
+    'numMCTSSims': 3,          # 25 Number of games moves for MCTS to simulate.
     'arenaCompare': 40,         # Number of games to play during arena play to determine if new net will be accepted.
     'cpuct': 1,
 
@@ -30,8 +30,11 @@ args = dotdict({
 
 
 def main():
+
+    # print("rinnovato")
+
     log.info('Loading %s...', Game.__name__)
-    g = Game(6)
+    g = Game(5)
 
     log.info('Loading %s...', nn.__name__)
     nnet = nn(g)
