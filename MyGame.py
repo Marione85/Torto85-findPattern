@@ -1,9 +1,11 @@
-from .MyLogic import Board
+from Game import Game
+from MyLogic import Board
+
 import numpy as np
 import numpy.ma as ma
 import math
 
-class Game():
+class MyGame(Game):
     """ Questa classe specifica il Game. Questo Game è pensato per
     essere: two-player, adversarial and turn-based.
     Usa 1 per il player1 e -1 per il player2."""
@@ -96,6 +98,10 @@ class Game():
             # altrimenti player2 vince -> return -1
         # non è stato fatto guess -> return 0
         
+        # print(self.b.pieces)
+        # print(self.b.guess1)
+        # print(self.b.guess2)
+
         if self.b.guess1 == self.b.case:
             # vinto
             return 1
@@ -129,7 +135,7 @@ class Game():
             # si ricorda inoltre che il formato delle info è:
             # board.info1[i][j][0] = bianco
             # board.info1[i][j][1] = nero
-            mx = ma.masked_array(board, mask=self.b.mask1, dtype=float)
+            mx = ma.masked_array(self.b.pieces, mask=self.b.mask1, dtype=float)
             for i in range(self.n):
                 for j in range(self.n):
                     if mx.mask[i][j] == True:
@@ -139,7 +145,7 @@ class Game():
                                     self.b.info1[i][j][1]), 3)
         else:
             # si effettua la stessa operazione per il player2
-            mx = ma.masked_array(board, mask=self.b.mask2, dtype=float)
+            mx = ma.masked_array(self.b.pieces, mask=self.b.mask2, dtype=float)
             for i in range(self.n):
                 for j in range(self.n):
                     if mx.mask[i][j] == True:
@@ -185,7 +191,7 @@ class Game():
                 l += [(newB, list(newPi.ravel()) + [pi[-1]])]
         return l
 
-    def stringRepresentation(self, board, player):
+    def stringRepresentation(self, board):
         """
         Input: board corrente
 
