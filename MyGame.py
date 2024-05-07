@@ -119,6 +119,9 @@ class MyGame(Game):
         return 0
 
     def getCanonicalForm(self, board, player):
+
+
+
         """
         Input: board e player (1 o -1) correnti
 
@@ -176,9 +179,20 @@ class MyGame(Game):
         neural network attraverso gli esempi.
         """
         # mirror, rotational
+        #print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        #print(pi)
         
+        #print(len(pi))
+        #print( self.n**4+2)     
         assert(len(pi) == self.n**4+2)  # 2 per il guess
-        pi_board = np.reshape(pi[:-2], (self.n, self.n))
+        #print("cristo")
+        #print(self.n)
+        pi = pi[:9]
+        pi_board = np.reshape(pi, (self.n, self.n))
+
+
+
+        #print("mannaggia")
         l = []
 
         for i in range(1, 5):

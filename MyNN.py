@@ -7,7 +7,7 @@ from tqdm import tqdm
 from utils import *
 from NeuralNet import NeuralNet
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from MyGameNN import OthelloNNet as onnet
 
 args = dotdict({
@@ -18,17 +18,49 @@ args = dotdict({
     'num_channels': 512,
 })
 
-class NNetWrapper(NeuralNet):
+'''class NNetWrapper(NeuralNet):
     def __init__(self, game):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
 
+
         self.sess = tf.Session(graph=self.nnet.graph)
         self.saver = None
+        
         with tf.Session() as temp_sess:
             temp_sess.run(tf.global_variables_initializer())
-        self.sess.run(tf.variables_initializer(self.nnet.graph.get_collection('variables')))
+        self.sess.run(tf.variables_initializer(self.nnet.graph.get_collection('variables')))'''
+        
+        
+import tensorflow as tf
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Input, Flatten, Dense
+
+class NNetWrapper(NeuralNet):
+    def __init__(self, game):
+        #super(NNetWrapper, self).__init__()
+        self.nnet = onnet(game, args)
+        self.board_x, self.board_y = game.getBoardSize()
+        self.action_size = game.getActionSize()
+
+        self.nnet = self.create_model()
+        self.sess = tf.compat.v1.keras.backend.get_session()
+        self.saver = None
+
+    def create_model(self):
+        input_boards = Input(shape=(self.board_x, self.board_y))
+
+        x = Flatten()(input_boards)
+        x = Dense(64, activation='relu')(x)
+        x = Dense(32, activation='relu')(x)
+        x = Dense(self.action_size, activation='softmax')(x)
+
+        model = Model(inputs=input_boards, outputs=x)
+        return model
+
+
+
 
     def train(self, examples):
         """
@@ -68,13 +100,21 @@ class NNetWrapper(NeuralNet):
         # preparing input
         board = board[np.newaxis, :, :]
 
-        # run
-        prob, v = self.sess.run([self.nnet.prob, self.nnet.v],
-                                feed_dict={self.nnet.input_boards: board, self.nnet.dropout: 0,
-                                           self.nnet.isTraining: False})
+        output = self.nnet.predict(board)
+
+        # Extracting prob and v from output
+        prob = output[0]
+        v = output[0]
 
         # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
-        return prob[0], v[0]
+        return prob, v
+        # run
+        #prob, v = self.sess.run([self.nnet.prob, self.nnet.v],
+        #                        feed_dict={self.nnet.input_boards: board, self.nnet.dropout: 0,
+        #                                   self.nnet.isTraining: False})
+
+        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
+        #return prob[0], v[0]
 
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)

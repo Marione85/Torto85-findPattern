@@ -7,6 +7,17 @@ class Game():
     Use 1 for player1 and -1 for player2.
 
     See othello/OthelloGame.py for an example implementation.
+    __init__(self): Il costruttore della classe. Può essere utilizzato per inizializzare eventuali variabili di istanza necessarie.
+
+    getInitBoard(self): Restituisce una rappresentazione del tabellone all'inizio del gioco.
+    getBoardSize(self): Restituisce le dimensioni del tabellone come una tupla di valori (x, y).
+    getActionSize(self): Restituisce il numero di tutte le possibili azioni.
+    getNextState(self, board, player, action): Restituisce lo stato successivo del tabellone dopo che un giocatore ha effettuato un'azione.
+    getValidMoves(self, board, player): Restituisce un vettore binario che indica le mosse valide per un determinato giocatore sul tabellone corrente.
+    getGameEnded(self, board, player): Restituisce lo stato del gioco, che può essere 0 se il gioco non è ancora finito, 1 se il giocatore ha vinto, -1 se il giocatore ha perso e un valore non nullo per una patta.
+    getCanonicalForm(self, board, player): Restituisce la forma canonica del tabellone, che dovrebbe essere indipendente dal giocatore. 
+    getSymmetries(self, board, pi): Restituisce una lista di tuple contenenti forme simmetriche del tabellone e i corrispondenti vettori di policy. Questo metodo è utile durante l'addestramento della rete neurale.
+    stringRepresentation(self, board): Restituisce una rapida conversione del tabellone in un formato stringa, necessario per l'hashing utilizzato da algoritmi come MCTS (Monte Carlo Tree Search).
     """
     def __init__(self):
         pass
