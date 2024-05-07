@@ -2,6 +2,7 @@ import numpy as np
 import numpy.ma as ma
 import itertools
 
+
 class Board():
 
     def __init__(self, n):
